@@ -1,3 +1,12 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: CookieOptions;
+};
+
 /**
  * Next.js middleware.
  *
@@ -9,10 +18,6 @@
  * (`withAuth` / `requireUser`) are the source of truth for protected
  * resources. Middleware only refreshes cookies.
  */
-
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });
 
@@ -29,29 +34,17 @@ export async function middleware(req: NextRequest) {
       getAll() {
         return req.cookies.getAll();
       },
-type CookieToSet = {
-  name: string;
-  value: string;
-  options?: {
-    domain?: string;
-    path?: string;
-    maxAge?: number;
-    expires?: Date;
-    httpOnly?: boolean;
-    secure?: boolean;
-    sameSite?: "lax" | "strict" | "none";
-  };
-};
+      setAll(cookiesToSet: CookieToSet[]) {
+        cookiesToSet.forEach(({ name, value }) => {
+          req.cookies.set(name, value);
+        });
 
-setAll(cookiesToSet: CookieToSet[]) {
-  cookiesToSet.forEach(({ name, value }) => {
-    req.cookies.set(name, value);
-  });
+        res = NextResponse.next({ request: req });
 
-  cookiesToSet.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options);
-  });
-},
+        cookiesToSet.forEach(({ name, value, options }) => {
+          res.cookies.set(name, value, options);
+        });
+      },
     },
   });
 
