@@ -29,15 +29,29 @@ export async function middleware(req: NextRequest) {
       getAll() {
         return req.cookies.getAll();
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => {
-          req.cookies.set(name, value);
-        });
-        res = NextResponse.next({ request: req });
-        cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: CookieOptions }) => {
-          res.cookies.set(name, value, options);
-        });
-      },
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: {
+    domain?: string;
+    path?: string;
+    maxAge?: number;
+    expires?: Date;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: "lax" | "strict" | "none";
+  };
+};
+
+setAll(cookiesToSet: CookieToSet[]) {
+  cookiesToSet.forEach(({ name, value }) => {
+    req.cookies.set(name, value);
+  });
+
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options);
+  });
+},
     },
   });
 
